@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/dataTables.bootstrap4.min.css">
+
+    <title>Main</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+
+</head>
+
+
+<body>
+    <div class="container mx-auto" style="width: 95vw;">
+
+        <h1 style="text-align: center;">Choose your partner</h1>
+        <div class="row">
+            <div class="col-3" id="likeddiv">
+                <h4>PEOPLE LIKED</h4>
+            </div>
+            <div class="col-6 ">
+                <div class="row justify-content-around">
+                    <div class="col-6 ">
+                        <img uid="" id="displayimg" class="img-thumbnail img-rounded" height="300" width="300" src=""
+                            alt="">
+                    </div>
+                </div>
+                <div class="row justify-content-around ">
+                    <div class="col-1 ">
+                        <button id="prevv" class="btn btn-secondary align-items-center">PREVIOUS</button>
+                    </div>
+                    <div class="col-1 ">
+                        <button id="liked" class="btn btn-warning"> &nbsp;&nbsp; LIKE &nbsp; &nbsp;</button>
+                    </div>
+                    <div class="col-1 ">
+                        <button id="superliked" class="btn btn-danger">SUPER-LIKE</button>
+                    </div>
+                    <div class="col-1 ">
+                        <button id="nextt" class="btn btn-secondary">&nbsp;&nbsp;NEXT&nbsp;&nbsp;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3" id="superlikeddiv">
+                <h4>PEOPLE SUPER-LIKED </h4>
+            </div>
+        </div>
+
+        <!-- <div class='row' id='superlikeddiv'><div class='col-6'><p>data.info</p></div><div class='col-6'><img src='"'+data.image+'"' class='img-thumbnail' width='20' height='20' id='superlikedimg' alt=''></div></div> -->
+
+    </div>
+    <p class="" id="useruid" useruid=""></p>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
+    
+<script>
+
+    var socket = io();
+    var Alldata;
+    var useruid;
+    var userblockeduid
+    var total;
+    var superlikeduid;
+
+    socket.on('load', function (data) {
+
+        Alldata = data.Alldata;
+        const myuid = data.useruid;
+        window.uid=myuid;
+        userblockeduid = data.userblockeduid;
+        total = data.total;
+        // console.log(total+"<===total");
+        // console.log(userblockeduid);
+        // console.log(Alldata)
+        var current_ind = 0;
+        if (myuid) {
+            $('#useruid').attr('useruid', myuid);
+            $('#useruid').text(myuid);
+            useruid =  $('#useruid').text();
+            
+        }
+        $("#displayimg").attr('src', Alldata[0].image);
+        $("#displayimg").attr('uid', Alldata[0].uid);
+
+        $('#nextt').click(function () {
+            current_ind = (current_ind + 1) % total;
+            // console.log(current_ind)
+            $("#displayimg").attr('src', Alldata[current_ind].image);
+            $("#displayimg").attr('uid', Alldata[current_ind].uid);
+        })
+        $('#prevv').click(function () {
+            current_ind = (current_ind + total - 1) % total;
+            // console.log(current_ind)
+            $("#displayimg").prop('src', Alldata[current_ind].image);
+            $("#displayimg").prop('uid', Alldata[current_ind].uid);
+        })
+
+    });
+
+    setTimeout(function () {
+        var socketlk = io('/liked');
+
+        socketlk.on(useruid, (data) => {
+            toastr.success("SOMEONELIKED YOU");
+            console.log(data.info + "YEAHHHHHHHHqqqqqqqqqqqq");
+            $("#likeddiv").append("<p>" + data.info + "</p>");
+        })
+        $('#liked').click(function () {
+            likeduid = $("#displayimg").attr('uid');
+            socketlk.emit(useruid, { likeduid: likeduid });
+            console.log(likeduid + "<liked+emit from client+useruid>" + useruid);
+        })
+    }, 1000)
+    
+    setTimeout(()=>{
+        var socketslk = io('/superliked');
+    console.log(window.uid +"++++++++++++++++++");
+    socketslk.on(useruid, (data) => {
+        console.log(data + "SUPER==YEAHHHHHHHHqqqqqqqqqqqq");
+        $("#superlikeddiv").append("<div class='row' id='superlikeddiv'><div class='col-6'><p>" + data.info + "</p></div><div class='col-6'><img src='" + data.image + "' class='img-thumbnail' width='100' height='100' id='superlikedimg' alt=''></div></div>");
+    })
+    $('#superliked').click(function () {
+        // useruid = $('#useruid').attr('useruid');
+        
+        superlikeduid = $("#displayimg").attr('uid');
+        socketslk.emit(useruid, { superlikeduid: superlikeduid });
+        console.log(superlikeduid + "<Superliked+emit from client+useruid>" + useruid);
+    })
+    }, 1000);   
+
+
+</script>
+
+</body>
+
+</html>
